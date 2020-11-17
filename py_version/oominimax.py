@@ -76,14 +76,14 @@ class Board:
 
         return cells
 
-    def set_move(self, x, y, player):
+    def set_move(self, x, y, player, CurrentState):
         """
         Set the move on board, if the coordinates are valid
         :param x: X coordinate
         :param y: Y coordinate
         :param player: the current player
         """
-        if CurrentState.valid_move(x, y):                       # Objectify valid_move
+        if CurrentState.valid_move(x, y, self):                       # Objectify valid_move
             self.board[x][y] = player
             return True
         else:
@@ -144,7 +144,7 @@ class State:
         """
         return self.wins(state, self.HUMAN) or self.wins(state, self.COMP)
 
-    def valid_move(self, x, y):
+    def valid_move(self, x, y, UsedBoard):
         """
         A move is valid if the chosen cell is empty
         :param x: X coordinate
@@ -156,7 +156,7 @@ class State:
         else:
             return False
 
-    def minimax(self, state, depth, player):
+    def minimax(self, state, depth, player, UsedBoard):
         """
         AI function that choice the best move
         :param state: current state of the board
@@ -177,7 +177,7 @@ class State:
         for cell in UsedBoard.empty_cells(state):                     # Objectify empty_cells
             x, y = cell[0], cell[1]
             state[x][y] = player
-            score = self.minimax(state, depth - 1, -player)
+            score = self.minimax(state, depth - 1, -player, UsedBoard)
             state[x][y] = 0
             score[0], score[1] = x, y
 
@@ -190,7 +190,7 @@ class State:
 
         return best
 
-    def ai_turn(self, c_choice, h_choice):
+    def ai_turn(self, c_choice, h_choice, UsedBoard):
         """
         It calls the minimax function if the depth < 9,
         else it choices a random coordinate.
@@ -210,15 +210,15 @@ class State:
             x = choice([0, 1, 2])
             y = choice([0, 1, 2])
         else:
-            move = self.minimax(UsedBoard.board, depth, self.COMP)        #Refer to board and change COMP
+            move = self.minimax(UsedBoard.board, depth, self.COMP, UsedBoard)        #Refer to board and change COMP
             x, y = move[0], move[1]
 
-        UsedBoard.set_move(x, y, self.COMP)                            #Refer to set_move
+        UsedBoard.set_move(x, y, self.COMP, self)                            #Refer to set_move
         # Paul Lu.  Go full speed.
         # time.sleep(1)
 
 
-    def human_turn(self, c_choice, h_choice):
+    def human_turn(self, c_choice, h_choice, UsedBoard):
         """
         The Human plays choosing a valid move.
         :param c_choice: computer's choice X or O
@@ -245,7 +245,7 @@ class State:
             try:
                 move = int(input('Use numpad (1..9): '))
                 coord = moves[move]
-                can_move = UsedBoard.set_move(coord[0], coord[1], self.HUMAN)         #Objectify set_move
+                can_move = UsedBoard.set_move(coord[0], coord[1], self.HUMAN, self)         #Objectify set_move
 
                 if not can_move:
                     print('Bad move')
@@ -302,21 +302,21 @@ def main():
             print('Bad choice')
 
     # Main loop of this game
-    while len(UsedBoard.empty_cells(board)) > 0 and not CurrentState.game_over(UsedBoard.board):
+    while len(UsedBoard.empty_cells(UsedBoard.board)) > 0 and not CurrentState.game_over(UsedBoard.board):
         if first == 'N':
-            ai_turn(c_choice, h_choice)
+            CurrentState.ai_turn(c_choice, h_choice)
             first = ''
 
-        human_turn(c_choice, h_choice)
-        ai_turn(c_choice, h_choice)
+        CurrentState.human_turn(c_choice, h_choice, UsedBoard)
+        CurrentState.ai_turn(c_choice, h_choice, UsedBoard)
 
     # Game over message
-    if wins(UsedBoard.board, HUMAN):
+    if CurrentState.wins(UsedBoard.board, CurrentState.HUMAN):
         UsedBoard.clean()
         print(f'Human turn [{h_choice}]')
         UsedBoard.render(UsedBoard.board, c_choice, h_choice)
         print('YOU WIN!')
-    elif wins(UsedBoard.board, COMP):
+    elif CurrentState.wins(UsedBoard.board, CurrentState.COMP):
         UsedBoard.clean()
         print(f'Computer turn [{c_choice}]')
         UsedBoard.render(UsedBoard.board, c_choice, h_choice)
