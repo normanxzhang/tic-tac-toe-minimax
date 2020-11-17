@@ -84,7 +84,7 @@ class Board:
         :param player: the current player
         """
         if CurrentState.valid_move(x, y):                       # Objectify valid_move
-            board[x][y] = player
+            self.board[x][y] = player
             return True
         else:
             return False
@@ -96,7 +96,8 @@ class State:
         self.COMP = 1
 
     def evaluate(self, state):
-         """
+
+        """
         Function to heuristic evaluation of state.
         :param state: the state of the current board
         :return: +1 if the computer wins; -1 if the human wins; 0 draw
@@ -150,7 +151,7 @@ class State:
         :param y: Y coordinate
         :return: True if the board[x][y] is empty
         """
-        if [x, y] in UsedBoard.empty_cells(board):        # Change the "empty_cells" to something objectfiable"
+        if [x, y] in UsedBoard.empty_cells(UsedBoard.board):        # Change the "empty_cells" to something objectfiable"
             return True
         else:
             return False
@@ -197,19 +198,19 @@ class State:
         :param h_choice: human's choice X or O
         :return:
         """
-        depth = len(UsedBoard.empty_cells(board))             #Objectify empty
-        if depth == 0 or self.game_over(board):     #Refer to board
+        depth = len(UsedBoard.empty_cells(UsedBoard.board))             #Objectify empty
+        if depth == 0 or self.game_over(UsedBoard.board):     #Refer to board
             return
 
         UsedBoard.clean()                                         #Objectify clean
         print(f'Computer turn [{c_choice}]')
-        UsedBoard.render(board, c_choice, h_choice)               #Refer to render and board
+        UsedBoard.render(UsedBoard.board, c_choice, h_choice)               #Refer to render and board
 
         if depth == 9:
             x = choice([0, 1, 2])
             y = choice([0, 1, 2])
         else:
-            move = self.minimax(board, depth, self.COMP)        #Refer to board and change COMP
+            move = self.minimax(UsedBoard.board, depth, self.COMP)        #Refer to board and change COMP
             x, y = move[0], move[1]
 
         UsedBoard.set_move(x, y, self.COMP)                            #Refer to set_move
@@ -224,8 +225,8 @@ class State:
         :param h_choice: human's choice X or O
         :return:
         """
-        depth = len(UsedBoard.empty_cells(board))             #objectify cmpty cells and board
-        if depth == 0 or self.game_over(board):
+        depth = len(UsedBoard.empty_cells(UsedBoard.board))             #objectify cmpty cells and board
+        if depth == 0 or self.game_over(UsedBoard.board):
             return
 
         # Dictionary of valid moves
@@ -238,7 +239,7 @@ class State:
 
         UsedBoard.clean()                                         #Objectify
         print(f'Human turn [{h_choice}]')
-        UsedBoard.render(board, c_choice, h_choice)               #Objectify
+        UsedBoard.render(UsedBoard.board, c_choice, h_choice)               #Objectify
 
         while move < 1 or move > 9:
             try:
@@ -301,7 +302,7 @@ def main():
             print('Bad choice')
 
     # Main loop of this game
-    while len(UsedBoard.empty_cells(board)) > 0 and not CurrentState.game_over(board):
+    while len(UsedBoard.empty_cells(board)) > 0 and not CurrentState.game_over(UsedBoard.board):
         if first == 'N':
             ai_turn(c_choice, h_choice)
             first = ''
@@ -310,19 +311,19 @@ def main():
         ai_turn(c_choice, h_choice)
 
     # Game over message
-    if wins(board, HUMAN):
+    if wins(UsedBoard.board, HUMAN):
         UsedBoard.clean()
         print(f'Human turn [{h_choice}]')
-        UsedBoard.render(board, c_choice, h_choice)
+        UsedBoard.render(UsedBoard.board, c_choice, h_choice)
         print('YOU WIN!')
-    elif wins(board, COMP):
+    elif wins(UsedBoard.board, COMP):
         UsedBoard.clean()
         print(f'Computer turn [{c_choice}]')
-        UsedBoard.render(board, c_choice, h_choice)
+        UsedBoard.render(UsedBoard.board, c_choice, h_choice)
         print('YOU LOSE!')
     else:
         UsedBoard.clean()
-        UsedBoard.render(board, c_choice, h_choice)
+        UsedBoard.render(UsedBoard.board, c_choice, h_choice)
         print('DRAW!')
 
     exit()
