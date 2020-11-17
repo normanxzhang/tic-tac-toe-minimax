@@ -83,7 +83,7 @@ class Board:
         :param y: Y coordinate
         :param player: the current player
         """
-        if valid_move(x, y):                       # Objectify valid_move
+        if CurrentState.valid_move(x, y):                       # Objectify valid_move
             board[x][y] = player
             return True
         else:
@@ -150,7 +150,7 @@ class State:
         :param y: Y coordinate
         :return: True if the board[x][y] is empty
         """
-        if [x, y] in empty_cells(board):        # Change the "empty_cells" to something objectfiable"
+        if [x, y] in UsedBoard.empty_cells(board):        # Change the "empty_cells" to something objectfiable"
             return True
         else:
             return False
@@ -173,7 +173,7 @@ class State:
             score = self.evaluate(state)
             return [-1, -1, score]
 
-        for cell in empty_cells(state):                     # Objectify empty_cells
+        for cell in UsedBoard.empty_cells(state):                     # Objectify empty_cells
             x, y = cell[0], cell[1]
             state[x][y] = player
             score = self.minimax(state, depth - 1, -player)
@@ -197,13 +197,13 @@ class State:
         :param h_choice: human's choice X or O
         :return:
         """
-        depth = len(empty_cells(board))             #Objectify empty
+        depth = len(UsedBoard.empty_cells(board))             #Objectify empty
         if depth == 0 or self.game_over(board):     #Refer to board
             return
 
-        clean()                                         #Objectify clean
+        UsedBoard.clean()                                         #Objectify clean
         print(f'Computer turn [{c_choice}]')
-        render(board, c_choice, h_choice)               #Refer to render and board
+        UsedBoard.render(board, c_choice, h_choice)               #Refer to render and board
 
         if depth == 9:
             x = choice([0, 1, 2])
@@ -212,7 +212,7 @@ class State:
             move = self.minimax(board, depth, self.COMP)        #Refer to board and change COMP
             x, y = move[0], move[1]
 
-        set_move(x, y, self.COMP)                            #Refer to set_move
+        UsedBoard.set_move(x, y, self.COMP)                            #Refer to set_move
         # Paul Lu.  Go full speed.
         # time.sleep(1)
 
@@ -224,7 +224,7 @@ class State:
         :param h_choice: human's choice X or O
         :return:
         """
-        depth = len(empty_cells(board))             #objectify cmpty cells and board
+        depth = len(UsedBoard.empty_cells(board))             #objectify cmpty cells and board
         if depth == 0 or self.game_over(board):
             return
 
@@ -236,15 +236,15 @@ class State:
             7: [2, 0], 8: [2, 1], 9: [2, 2],
         }
 
-        clean()                                         #Objectify
+        UsedBoard.clean()                                         #Objectify
         print(f'Human turn [{h_choice}]')
-        render(board, c_choice, h_choice)               #Objectify
+        UsedBoard.render(board, c_choice, h_choice)               #Objectify
 
         while move < 1 or move > 9:
             try:
                 move = int(input('Use numpad (1..9): '))
                 coord = moves[move]
-                can_move = set_move(coord[0], coord[1], self.HUMAN)
+                can_move = UsedBoard.set_move(coord[0], coord[1], self.HUMAN)         #Objectify set_move
 
                 if not can_move:
                     print('Bad move')
@@ -255,3 +255,78 @@ class State:
             except (KeyError, ValueError):
                 print('Bad choice')
 
+
+
+def main():
+    """
+    Main function that calls all functions
+    """
+    # Paul Lu.  Set the seed to get deterministic behaviour for each run.
+    #       Makes it easier for testing and tracing for understanding.
+    randomseed(274 + 2020)
+
+    UsedBoard = Board()
+    CurrentState = State()
+    UsedBoard.clean()
+    h_choice = ''  # X or O
+    c_choice = ''  # X or O
+    first = ''  # if human is the first
+
+    # Human chooses X or O to play
+    while h_choice != 'O' and h_choice != 'X':
+        try:
+            print('')
+            h_choice = input('Choose X or O\nChosen: ').upper()
+        except (EOFError, KeyboardInterrupt):
+            print('Bye')
+            exit()
+        except (KeyError, ValueError):
+            print('Bad choice')
+
+    # Setting computer's choice
+    if h_choice == 'X':
+        c_choice = 'O'
+    else:
+        c_choice = 'X'
+
+    # Human may starts first
+    UsedBoard.clean()
+    while first != 'Y' and first != 'N':
+        try:
+            first = input('First to start?[y/n]: ').upper()
+        except (EOFError, KeyboardInterrupt):
+            print('Bye')
+            exit()
+        except (KeyError, ValueError):
+            print('Bad choice')
+
+    # Main loop of this game
+    while len(UsedBoard.empty_cells(board)) > 0 and not CurrentState.game_over(board):
+        if first == 'N':
+            ai_turn(c_choice, h_choice)
+            first = ''
+
+        human_turn(c_choice, h_choice)
+        ai_turn(c_choice, h_choice)
+
+    # Game over message
+    if wins(board, HUMAN):
+        UsedBoard.clean()
+        print(f'Human turn [{h_choice}]')
+        UsedBoard.render(board, c_choice, h_choice)
+        print('YOU WIN!')
+    elif wins(board, COMP):
+        UsedBoard.clean()
+        print(f'Computer turn [{c_choice}]')
+        UsedBoard.render(board, c_choice, h_choice)
+        print('YOU LOSE!')
+    else:
+        UsedBoard.clean()
+        UsedBoard.render(board, c_choice, h_choice)
+        print('DRAW!')
+
+    exit()
+
+
+if __name__ == '__main__':
+    main()
